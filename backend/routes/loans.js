@@ -11,11 +11,17 @@ async function connectToDatabase() {
     await client.connect();
     console.log("Connected to MongoDB");
 
-    return client.db("microxchange").collection("users");
+    const loansCollection = client.db("microxchange").collection("laons");
+    // Fetch all data from the "loans" collection
+    const allLoans = await loansCollection.find({}).toArray();
+    console.log("All data from 'loans' collection:", allLoans);
+
+    return loansCollection;
   } catch (error) {
     console.error("Error connecting to MongoDB: ", error);
   }
 }
+
 
 // Route for loan application
 router.post('/apply', async (req, res) => {
@@ -36,11 +42,20 @@ router.post('/apply', async (req, res) => {
 // Route to get user's loans
 router.get('/user/:userId', async (req, res) => {
   const userId = req.params.userId;
+  console.log('Received userId:', userId);
 
   const loansCollection = await connectToDatabase();
-  const userLoans = await loansCollection.find({ userId: ObjectId(userId) }).toArray();
 
-  res.status(200).json({ loans: userLoans });
+  try {
+    const userLoans = await loansCollection.find({ "userId": userId }).toArray(); 
+    console.log('Fetched user loans:', userLoans);
+    res.status(200).json({ loans: userLoans });
+  } catch (error) {
+    console.error("Error fetching user loans:", error);
+    res.status(500).json({ error: "Failed to fetch user loans" });
+  }
 });
+
+
 
 module.exports = router;

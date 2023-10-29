@@ -1,26 +1,18 @@
 require('dotenv').config();
+const express = require('express');
+const loansRouter = require('./routes/loans'); 
+const usersRouter = require('./routes/users'); 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const app = express();
 
-const uri = process.env.MONGODB_URI; 
+app.use(express.json());
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+// Routes
+app.use('/loans', loansRouter); 
+app.use('/users', usersRouter); 
+
+// Start the server
+const PORT = 5000; 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-async function run() {
-  try {
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    await client.close();
-  }
-}
-
-run().catch(console.dir);
